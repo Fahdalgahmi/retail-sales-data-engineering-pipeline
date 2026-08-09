@@ -1,0 +1,29 @@
+# Virtual environment
+venv/
+.venv/
+
+# Environment variables / database credentials
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Pytest
+.pytest_cache/
+
+# Logs
+logs/
+*.log
+
+# IDE / editor
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
