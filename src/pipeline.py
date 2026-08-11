@@ -1,18 +1,24 @@
-from extract import extract_sales_data
-from transform import transform_sales_data
-from load import load_sales_data
-from warehouse import build_warehouse
-from validate import validate_data
-from logger_config import get_logger
-from database import engine
+import logging
 
+from src.extract import extract_sales_data
+from src.transform import transform_sales_data
+from src.load import load_sales_data
+from src.database import engine
+from src.warehouse import build_warehouse
+from src.validate import validate_data
 
-logger = get_logger(__name__)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
 
 
 def run_pipeline():
     try:
-        print("Starting full data pipeline...")
+        print("\nStarting full data pipeline...")
         logger.info("Pipeline started.")
 
         # -----------------------------

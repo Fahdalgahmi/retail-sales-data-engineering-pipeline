@@ -1,7 +1,6 @@
-from database import engine
+from src.database import engine
 from sqlalchemy import text
-from logger_config import get_logger
-
+from src.logger_config import get_logger
 logger = get_logger(__name__)
 
 def validate_data():
