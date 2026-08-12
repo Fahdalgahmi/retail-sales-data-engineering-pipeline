@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@db:5432/retail_sales"
+    "postgresql://postgres:postgres@localhost:5433/retail_sales"
 )
 
 engine = create_engine(DATABASE_URL)
