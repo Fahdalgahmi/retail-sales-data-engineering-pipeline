@@ -1,8 +1,8 @@
 # Retail Sales Data Engineering Pipeline
 
-An end-to-end **data engineering pipeline** built with Python and PostgreSQL that processes **10,000 retail sales records** from raw CSV data into an analytics-ready dimensional data warehouse.
+An end-to-end **data engineering and analytics pipeline** built with Python and PostgreSQL that processes **10,000 retail sales records** from raw CSV data into an analytics-ready dimensional data warehouse.
 
-The project demonstrates a complete data engineering workflow including **ETL processing, PostgreSQL integration, dimensional modeling, automated data-quality validation, testing, logging, and pipeline orchestration**.
+The project demonstrates a complete data engineering workflow including **ETL processing, PostgreSQL integration, dimensional modeling, automated data-quality validation, Pytest testing, Docker containerization, Prefect workflow orchestration, GitHub Actions continuous integration, and Power BI analytics**.
 
 ---
 
@@ -24,11 +24,11 @@ PostgreSQL Staging Table
         v
 Dimensional Data Warehouse
         |
-        +----------------------+
-        |                      |
-        v                      v
- Dimension Tables          Fact Table
-                           fact_sales
+        +-----------------------+
+        |                       |
+        v                       v
+ Dimension Tables           Fact Table
+                            fact_sales
         |
         +-- dim_product
         +-- dim_customer
@@ -39,8 +39,10 @@ Dimensional Data Warehouse
         Data Quality Checks
                 |
                 v
-              Logs
+        Power BI Analytics
 ```
+
+The complete workflow can be executed locally using **Docker Compose**, while **Prefect** provides workflow orchestration and **GitHub Actions** automatically runs CI checks when code is pushed to the repository.
 
 ---
 
@@ -54,6 +56,11 @@ Dimensional Data Warehouse
 * psycopg2
 * python-dotenv
 * Pytest
+* Docker
+* Docker Compose
+* Prefect
+* GitHub Actions
+* Power BI
 * Git / GitHub
 
 ---
@@ -61,7 +68,11 @@ Dimensional Data Warehouse
 ## Project Structure
 
 ```text
-retail_sales_pipeline/
+retail-sales-data-engineering-pipeline/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 │
 ├── data/
 │   └── sales.csv
@@ -69,12 +80,14 @@ retail_sales_pipeline/
 ├── src/
 │   ├── database.py
 │   ├── extract.py
-│   ├── transform.py
+│   ├── generate.py
 │   ├── load.py
-│   ├── warehouse.py
-│   ├── validate.py
 │   ├── logger_config.py
-│   └── pipeline.py
+│   ├── pipeline.py
+│   ├── prefect_pipeline.py
+│   ├── transform.py
+│   ├── validate.py
+│   └── warehouse.py
 │
 ├── tests/
 │   ├── test_transform.py
@@ -83,6 +96,9 @@ retail_sales_pipeline/
 ├── logs/
 │   └── pipeline.log
 │
+├── Retail_Sales_Analytics_Dashboard.pbix
+├── compose.yaml
+├── Dockerfile
 ├── .gitignore
 ├── pytest.ini
 ├── README.md
@@ -95,7 +111,7 @@ retail_sales_pipeline/
 
 ### 1. Extract
 
-The extraction stage reads **10,000 retail sales records** from a CSV file using Pandas.
+The extraction stage reads **10,000 retail sales records** from CSV using Pandas.
 
 The source dataset contains:
 
@@ -108,7 +124,7 @@ The source dataset contains:
 * Price
 * Region
 
-Example pipeline output:
+Example output:
 
 ```text
 Extracting data...
@@ -117,13 +133,13 @@ Extracted 10000 sales records.
 
 ### 2. Transform
 
-The transformation stage prepares the raw data for loading and calculates the sales value for each transaction:
+The transformation stage cleans and prepares the raw data and calculates the sales value for each transaction:
 
 ```text
 total_sales = quantity × price
 ```
 
-This creates a clean dataset ready for PostgreSQL storage and downstream analytics.
+The transformed dataset is then ready for PostgreSQL storage and downstream analytics.
 
 ### 3. Load
 
@@ -135,11 +151,11 @@ Example:
 Loaded 10000 rows into PostgreSQL table: sales_data
 ```
 
-The staging layer separates raw ETL processing from the dimensional warehouse and acts as the source for warehouse construction.
+The staging layer separates the ETL process from the dimensional warehouse and acts as the source for warehouse construction.
 
 ### 4. Build the Data Warehouse
 
-The pipeline transforms the staging data into an analytics-oriented dimensional model.
+The pipeline transforms staging data into an analytics-oriented dimensional model.
 
 #### Dimension Tables
 
@@ -159,7 +175,7 @@ The `fact_sales` table contains transactional measurements including:
 * Price
 * Total sales
 
-It also contains foreign keys connecting each transaction to its corresponding product, customer, region, and date dimensions.
+It also contains foreign keys connecting transactions to the corresponding product, customer, region, and date dimensions.
 
 ---
 
@@ -177,9 +193,9 @@ dim_customer ------ fact_sales ------ dim_region
                       dim_date
 ```
 
-The fact table sits at the center of the model and connects transactional sales data with descriptive dimensions.
+The fact table sits at the center of the model and connects transactional sales metrics with descriptive dimensions.
 
-This design makes analytical SQL queries simpler and provides a structure suitable for reporting, dashboards, and business intelligence tools.
+This architecture simplifies analytical queries and provides a structure suitable for reporting, business intelligence, and dashboard development.
 
 ---
 
@@ -211,7 +227,7 @@ These checks help ensure that the warehouse contains complete, accurate, and int
 
 ## Automated Testing
 
-Pytest is used to verify important pipeline functionality.
+**Pytest** is used to verify important pipeline functionality.
 
 Current tests cover:
 
@@ -224,7 +240,7 @@ Run the test suite with:
 pytest
 ```
 
-Latest test result:
+Latest successful result:
 
 ```text
 collected 2 items
@@ -239,9 +255,71 @@ Automated testing helps detect regressions when pipeline logic is modified.
 
 ---
 
+## Docker Containerization
+
+The project is containerized with **Docker** and **Docker Compose**.
+
+Docker provides a reproducible environment for the application and PostgreSQL database.
+
+Start the containers with:
+
+```bash
+docker compose up -d
+```
+
+Check their status with:
+
+```bash
+docker compose ps
+```
+
+Stop the environment with:
+
+```bash
+docker compose down
+```
+
+Docker Compose manages the application and PostgreSQL services together, reducing the amount of manual local configuration required to run the project.
+
+---
+
+## Prefect Workflow Orchestration
+
+**Prefect** is used to orchestrate the data pipeline.
+
+The Prefect workflow coordinates the major pipeline stages and provides a structured workflow for executing the ETL and warehouse process.
+
+The orchestration layer helps organize pipeline tasks and provides a foundation for future scheduling, monitoring, retries, and production workflow management.
+
+The Prefect workflow is defined in:
+
+```text
+src/prefect_pipeline.py
+```
+
+---
+
+## GitHub Actions Continuous Integration
+
+The repository includes a **GitHub Actions CI workflow**.
+
+The workflow is defined in:
+
+```text
+.github/workflows/ci.yml
+```
+
+GitHub Actions provides automated validation of the project when changes are pushed to the repository.
+
+This introduces continuous integration practices into the development workflow and helps detect problems before changes are considered complete.
+
+---
+
 ## Pipeline Logging
 
 Pipeline execution is logged to help monitor processing and troubleshoot failures.
+
+Logs are written to:
 
 ```text
 logs/pipeline.log
@@ -256,6 +334,42 @@ The pipeline records events such as:
 * Warehouse construction
 * Validation completion
 * Pipeline success or failure
+
+---
+
+## Power BI Analytics Dashboard
+
+The project includes an interactive **Power BI dashboard** connected to the PostgreSQL dimensional warehouse.
+
+Dashboard file:
+
+```text
+Retail_Sales_Analytics_Dashboard.pbix
+```
+
+The dashboard provides an analytics layer on top of the engineered data warehouse.
+
+### Key Performance Indicators
+
+The dashboard displays:
+
+* **Total Sales:** approximately $10.22M
+* **Total Orders:** 10K
+* **Average Order Value:** approximately $1.02K
+
+### Dashboard Visualizations
+
+The report includes:
+
+* Monthly Sales Trend
+* Sales by Category
+* Sales by Region
+* Sales by Product
+* Region filtering
+
+The Region slicer allows users to interactively filter the dashboard and analyze sales performance across different geographic regions.
+
+This demonstrates how an engineered PostgreSQL warehouse can support downstream business intelligence and analytics.
 
 ---
 
@@ -302,15 +416,29 @@ DB_NAME=retail_sales
 
 The `.env` file is excluded from Git using `.gitignore` and should never be committed to the repository.
 
-### 5. Run the Full Pipeline
+### 5. Start Docker
 
-From the project root, run:
+Start the application and PostgreSQL containers:
+
+```bash
+docker compose up -d
+```
+
+Verify that the containers are running:
+
+```bash
+docker compose ps
+```
+
+### 6. Run the Full Pipeline
+
+From the project root:
 
 ```bash
 python -m src.pipeline
 ```
 
-The command executes the entire workflow:
+The pipeline executes:
 
 ```text
 Extract
@@ -326,7 +454,7 @@ Run Data Quality Checks
 Log Pipeline Execution
 ```
 
-A successful run ends with:
+A successful execution ends with:
 
 ```text
 All data quality checks passed.
@@ -334,7 +462,7 @@ All data quality checks passed.
 Full data pipeline completed successfully.
 ```
 
-### 6. Run Tests
+### 7. Run Tests
 
 ```bash
 pytest
@@ -344,16 +472,16 @@ pytest
 
 ## Example Analytics
 
-The dimensional warehouse can be queried to answer business questions such as:
+The dimensional warehouse can answer business questions such as:
 
 * Which product categories generate the most revenue?
 * Which regions generate the most sales?
-* Which products sell the most units?
+* Which products generate the most revenue?
 * Which customers generate the most revenue?
 * How does revenue change over time?
-* What are monthly or daily sales trends?
+* What are the monthly sales trends?
 
-Example query:
+Example SQL query:
 
 ```sql
 SELECT
@@ -366,7 +494,7 @@ GROUP BY p.category
 ORDER BY total_sales DESC;
 ```
 
-The star-schema design allows analytical queries to combine transaction metrics from `fact_sales` with descriptive information stored in the dimension tables.
+The star-schema design allows analytical queries to combine transaction metrics from `fact_sales` with descriptive information stored in dimension tables.
 
 ---
 
@@ -432,26 +560,26 @@ This project demonstrates practical experience with:
 * Pipeline logging
 * Exception handling
 * Environment variable management
-* Pipeline orchestration
+* Docker containerization
+* Docker Compose
+* Prefect workflow orchestration
+* GitHub Actions continuous integration
+* Power BI dashboard development
 * Git version control
 
 ---
 
 ## Future Improvements
 
-Potential enhancements include:
+Potential future enhancements include:
 
-* Incremental data loading
+* Incremental data loading and change-data-capture strategies
 * Upsert-based warehouse loading
-* Apache Airflow or Prefect orchestration
-* Docker containerization
-* Additional automated data-quality rules
-* Larger or externally sourced datasets
-* Cloud-hosted PostgreSQL
-* AWS, Azure, or GCP deployment
-* Scheduled pipeline execution
-* Power BI dashboard integration
-* CI/CD testing with GitHub Actions
+* Cloud deployment using AWS, Azure, or GCP
+* Scheduled production pipeline execution
+* Expanded automated data-quality monitoring
+* Larger externally sourced datasets
+* Power BI Service deployment and scheduled dashboard refresh
 
 ---
 
@@ -459,8 +587,8 @@ Potential enhancements include:
 
 This project demonstrates how raw transactional data can move through a complete **data engineering lifecycle**:
 
-**Raw Data → ETL → PostgreSQL → Dimensional Warehouse → Validation → Testing → Analytics**
+**Raw Data → ETL → PostgreSQL → Dimensional Warehouse → Validation → Testing → Power BI Analytics**
 
-The pipeline processes **10,000 sales transactions** and automatically builds and validates an analytics-ready warehouse.
+The pipeline processes **10,000 sales transactions** and automatically builds and validates an analytics-ready dimensional warehouse.
 
-It provides hands-on experience with technologies and concepts commonly used in **Data Engineering, Analytics Engineering, and Data Analytics** roles.
+The project demonstrates practical experience with technologies and concepts commonly used in **Data Engineering, Analytics Engineering, and Data Analytics** roles while connecting backend data engineering work to an interactive business intelligence dashboard.
